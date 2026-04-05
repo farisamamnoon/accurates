@@ -67,17 +67,23 @@ export const generatePDF = async (
   const lightGray: [number, number, number] = [170, 170, 170];
   const tableBorder: [number, number, number] = [200, 200, 200];
   const totalBg: [number, number, number] = [255, 248, 220]; // Keep the totalBg as is
+  let y = margin;
 
   // --- Header ---
-  let y = margin;
+  // Company Name
   doc.setTextColor(...black);
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.text(header.companyName.toUpperCase(), margin, y);
 
-  // Address and Contact Information (stacked vertically like image)
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  // Logo (Top Right)
+  try {
+    const base64Logo = await loadImageAsBase64(logoUrl);
+    // Positioned at top right: 35mm wide, 20mm high
+    doc.addImage(base64Logo, "PNG", pageWidth - margin - 35, 12, 35, 20);
+  } catch (error) {
+    console.error("Logo failed to load", error);
+  }
   y += 7;
 
   // Horizontal line separating header
