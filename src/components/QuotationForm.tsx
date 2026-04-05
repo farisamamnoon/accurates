@@ -109,7 +109,7 @@ const QuotationForm = () => {
                   <th className="px-3 py-3 text-center w-24">Unit</th>
                   <th className="px-3 py-3 text-right w-28">Unit Price</th>
                   <th className="px-3 py-3 text-right w-32">Total SAR</th>
-                  <th className="px-3 py-3 w-12"></th>
+                  <th className="px-3 py-3 w-12 no-print"></th>
                 </tr>
               </thead>
               <tbody>
