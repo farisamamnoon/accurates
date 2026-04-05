@@ -56,10 +56,12 @@ const QuotationForm = () => {
   const updateItem = useCallback(
     (id: number, field: keyof LineItem, value: string | number) => {
       setItems((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+        prev.map((item) =>
+          item.id === id ? { ...item, [field]: value } : item,
+        ),
       );
     },
-    []
+    [],
   );
 
   const addItem = () => setItems((prev) => [...prev, defaultItem()]);
@@ -69,11 +71,18 @@ const QuotationForm = () => {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const subtotal = items.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.qty * item.unitPrice,
+    0,
+  );
   const vat = subtotal * VAT_RATE;
   const grandTotal = subtotal + vat;
 
-  const fmt = (n: number) => n.toLocaleString("en-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n: number) =>
+    n.toLocaleString("en-SA", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   return (
     <div className="min-h-screen bg-muted/40 p-4 md:p-8">
@@ -90,12 +99,43 @@ const QuotationForm = () => {
         <div className="p-6 space-y-6">
           {/* Info Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField label="Date" value={header.date} onChange={(v) => updateHeader("date", v)} type="date" />
-            <InfoField label="TO" value={header.to} onChange={(v) => updateHeader("to", v)} placeholder="Company name" />
-            <InfoField label="Attn" value={header.attn} onChange={(v) => updateHeader("attn", v)} placeholder="Contact person" />
-            <InfoField label="QTN" value={header.qtn} onChange={(v) => updateHeader("qtn", v)} placeholder="Qtn-1001" />
-            <InfoField label="Tel" value={header.tel} onChange={(v) => updateHeader("tel", v)} placeholder="+966 XX XXX XXXX" />
-            <InfoField label="Email" value={header.email} onChange={(v) => updateHeader("email", v)} placeholder="email@example.com" type="email" />
+            <InfoField
+              label="Date"
+              value={header.date}
+              onChange={(v) => updateHeader("date", v)}
+              type="date"
+            />
+            <InfoField
+              label="TO"
+              value={header.to}
+              onChange={(v) => updateHeader("to", v)}
+              placeholder="Company name"
+            />
+            <InfoField
+              label="Attn"
+              value={header.attn}
+              onChange={(v) => updateHeader("attn", v)}
+              placeholder="Contact person"
+            />
+            <InfoField
+              label="QTN"
+              value={header.qtn}
+              onChange={(v) => updateHeader("qtn", v)}
+              placeholder="Qtn-1001"
+            />
+            <InfoField
+              label="Tel"
+              value={header.tel}
+              onChange={(v) => updateHeader("tel", v)}
+              placeholder="+966 XX XXX XXXX"
+            />
+            <InfoField
+              label="Email"
+              value={header.email}
+              onChange={(v) => updateHeader("email", v)}
+              placeholder="email@example.com"
+              type="email"
+            />
           </div>
 
           {/* Items Table */}
@@ -114,12 +154,19 @@ const QuotationForm = () => {
               </thead>
               <tbody>
                 {items.map((item, idx) => (
-                  <tr key={item.id} className="border-t border-border hover:bg-table-highlight transition-colors">
-                    <td className="px-3 py-2 text-center text-muted-foreground font-medium">{idx + 1}</td>
+                  <tr
+                    key={item.id}
+                    className="border-t border-border hover:bg-table-highlight transition-colors"
+                  >
+                    <td className="px-3 py-2 text-center text-muted-foreground font-medium">
+                      {idx + 1}
+                    </td>
                     <td className="px-3 py-2">
                       <Input
                         value={item.description}
-                        onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "description", e.target.value)
+                        }
                         placeholder="Material description"
                         className="h-8 border-none shadow-none focus-visible:ring-1 bg-transparent"
                       />
@@ -129,15 +176,21 @@ const QuotationForm = () => {
                         type="number"
                         min={0}
                         value={item.qty}
-                        onChange={(e) => updateItem(item.id, "qty", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateItem(item.id, "qty", Number(e.target.value))
+                        }
                         className="h-8 text-center border-none shadow-none focus-visible:ring-1 bg-transparent"
                       />
                     </td>
-                    <td className="px-3 py-2 text-center">
-                      <span className="hidden print:inline text-sm">{item.unit}</span>
+                    <td className="px-3 py-2">
+                      <span className="hidden print:inline text-sm">
+                        {item.unit}
+                      </span>
                       <select
                         value={item.unit}
-                        onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "unit", e.target.value)
+                        }
                         className="h-8 w-full rounded-md bg-transparent text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring print:hidden"
                       >
                         <option>Pcs</option>
@@ -155,11 +208,19 @@ const QuotationForm = () => {
                         min={0}
                         step={0.01}
                         value={item.unitPrice}
-                        onChange={(e) => updateItem(item.id, "unitPrice", Number(e.target.value))}
+                        onChange={(e) =>
+                          updateItem(
+                            item.id,
+                            "unitPrice",
+                            Number(e.target.value),
+                          )
+                        }
                         className="h-8 text-right border-none shadow-none focus-visible:ring-1 bg-transparent"
                       />
                     </td>
-                    <td className="px-3 py-2 text-right font-medium">{fmt(item.qty * item.unitPrice)}</td>
+                    <td className="px-3 py-2 text-right font-medium">
+                      {fmt(item.qty * item.unitPrice)}
+                    </td>
                     <td className="px-3 py-2 text-center no-print">
                       <Button
                         variant="ghost"
@@ -178,7 +239,12 @@ const QuotationForm = () => {
 
             {/* Add Row */}
             <div className="border-t border-border p-2 flex justify-center">
-              <Button variant="ghost" size="sm" onClick={addItem} className="text-primary gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addItem}
+                className="text-primary gap-1"
+              >
                 <Plus className="h-4 w-4" /> Add Item
               </Button>
             </div>
@@ -220,7 +286,9 @@ const InfoField = ({
   type?: string;
 }) => (
   <div className="flex items-center gap-3">
-    <span className="w-16 text-sm font-semibold text-foreground shrink-0">{label}</span>
+    <span className="w-16 text-sm font-semibold text-foreground shrink-0">
+      {label}
+    </span>
     <Input
       type={type}
       value={value}
@@ -231,10 +299,28 @@ const InfoField = ({
   </div>
 );
 
-const TotalRow = ({ label, value, bold }: { label: string; value: string; bold?: boolean }) => (
-  <div className={`flex justify-end items-center gap-8 px-6 py-2 ${bold ? "bg-total-bg" : ""}`}>
-    <span className={`text-sm ${bold ? "font-bold" : "font-semibold italic"} text-foreground`}>{label}</span>
-    <span className={`w-32 text-right text-sm ${bold ? "font-bold text-lg" : "font-semibold"}`}>{value}</span>
+const TotalRow = ({
+  label,
+  value,
+  bold,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+}) => (
+  <div
+    className={`flex justify-end items-center gap-8 px-6 py-2 ${bold ? "bg-total-bg" : ""}`}
+  >
+    <span
+      className={`text-sm ${bold ? "font-bold" : "font-semibold italic"} text-foreground`}
+    >
+      {label}
+    </span>
+    <span
+      className={`w-32 text-right text-sm ${bold ? "font-bold text-lg" : "font-semibold"}`}
+    >
+      {value}
+    </span>
   </div>
 );
 
@@ -258,12 +344,16 @@ const TermsSection = () => {
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <div className="bg-table-header px-4 py-2">
-        <h3 className="text-sm font-semibold text-foreground">Terms & Conditions</h3>
+        <h3 className="text-sm font-semibold text-foreground">
+          Terms & Conditions
+        </h3>
       </div>
       <div className="p-4 space-y-2">
         {terms.map((term, idx) => (
           <div key={term.id} className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground w-6 shrink-0">{idx + 1}.</span>
+            <span className="text-sm font-medium text-muted-foreground w-6 shrink-0">
+              {idx + 1}.
+            </span>
             <Input
               value={term.text}
               onChange={(e) => updateTerm(term.id, e.target.value)}
@@ -281,7 +371,12 @@ const TermsSection = () => {
             </Button>
           </div>
         ))}
-        <Button variant="ghost" size="sm" onClick={addTerm} className="text-primary gap-1 mt-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={addTerm}
+          className="text-primary gap-1 mt-1"
+        >
           <Plus className="h-4 w-4" /> Add Term
         </Button>
       </div>
