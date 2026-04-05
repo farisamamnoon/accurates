@@ -160,7 +160,7 @@ const QuotationForm = () => {
                       />
                     </td>
                     <td className="px-3 py-2 text-right font-medium">{fmt(item.qty * item.unitPrice)}</td>
-                    <td className="px-3 py-2 text-center">
+                    <td className="px-3 py-2 text-center no-print">
                       <Button
                         variant="ghost"
                         size="icon"
