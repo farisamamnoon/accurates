@@ -109,7 +109,7 @@ const QuotationForm = () => {
                   <th className="px-3 py-3 text-center w-24">Unit</th>
                   <th className="px-3 py-3 text-right w-28">Unit Price</th>
                   <th className="px-3 py-3 text-right w-32">Total SAR</th>
-                  <th className="px-3 py-3 w-12"></th>
+                  <th className="px-3 py-3 w-12 no-print"></th>
                 </tr>
               </thead>
               <tbody>
@@ -133,11 +133,12 @@ const QuotationForm = () => {
                         className="h-8 text-center border-none shadow-none focus-visible:ring-1 bg-transparent"
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 text-center">
+                      <span className="hidden print:inline text-sm">{item.unit}</span>
                       <select
                         value={item.unit}
                         onChange={(e) => updateItem(item.id, "unit", e.target.value)}
-                        className="h-8 w-full rounded-md bg-transparent text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        className="h-8 w-full rounded-md bg-transparent text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring print:hidden"
                       >
                         <option>Pcs</option>
                         <option>Roll</option>
@@ -159,7 +160,7 @@ const QuotationForm = () => {
                       />
                     </td>
                     <td className="px-3 py-2 text-right font-medium">{fmt(item.qty * item.unitPrice)}</td>
-                    <td className="px-3 py-2 text-center">
+                    <td className="px-3 py-2 text-center no-print">
                       <Button
                         variant="ghost"
                         size="icon"

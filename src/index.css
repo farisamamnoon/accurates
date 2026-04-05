@@ -110,3 +110,31 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .no-print,
+  button,
+  select {
+    display: none !important;
+  }
+
+  input {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+}
