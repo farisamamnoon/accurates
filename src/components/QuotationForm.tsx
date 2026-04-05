@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, FileDown } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface TermItem {
   id: number;
@@ -48,9 +49,18 @@ const QuotationForm = () => {
   });
 
   const [items, setItems] = useState<LineItem[]>([defaultItem()]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateHeader = (field: keyof HeaderInfo, value: string) => {
     setHeader((prev) => ({ ...prev, [field]: value }));
+    // Clear error on change
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   const updateItem = useCallback(
@@ -60,6 +70,15 @@ const QuotationForm = () => {
           item.id === id ? { ...item, [field]: value } : item,
         ),
       );
+      setErrors((prev) => {
+        const key = `item_${id}_${field}`;
+        if (prev[key]) {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        }
+        return prev;
+      });
     },
     [],
   );
@@ -69,6 +88,39 @@ const QuotationForm = () => {
   const removeItem = (id: number) => {
     if (items.length === 1) return;
     setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!header.to.trim()) newErrors.to = "Required";
+    if (!header.attn.trim()) newErrors.attn = "Required";
+    if (!header.tel.trim()) newErrors.tel = "Required";
+    if (!header.email.trim()) newErrors.email = "Required";
+
+    items.forEach((item) => {
+      if (!item.description.trim()) newErrors[`item_${item.id}_description`] = "Required";
+      if (item.qty <= 0) newErrors[`item_${item.id}_qty`] = "Required";
+      if (item.unitPrice <= 0) newErrors[`item_${item.id}_unitPrice`] = "Required";
+    });
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) {
+      window.print();
+    }
   };
 
   const subtotal = items.reduce(
@@ -110,12 +162,16 @@ const QuotationForm = () => {
               value={header.to}
               onChange={(v) => updateHeader("to", v)}
               placeholder="Company name"
+              required
+              error={errors.to}
             />
             <InfoField
               label="Attn"
               value={header.attn}
               onChange={(v) => updateHeader("attn", v)}
               placeholder="Contact person"
+              required
+              error={errors.attn}
             />
             <InfoField
               label="QTN"
@@ -128,6 +184,8 @@ const QuotationForm = () => {
               value={header.tel}
               onChange={(v) => updateHeader("tel", v)}
               placeholder="+966 XX XXX XXXX"
+              required
+              error={errors.tel}
             />
             <InfoField
               label="Email"
@@ -135,6 +193,8 @@ const QuotationForm = () => {
               onChange={(v) => updateHeader("email", v)}
               placeholder="email@example.com"
               type="email"
+              required
+              error={errors.email}
             />
           </div>
 
@@ -144,10 +204,10 @@ const QuotationForm = () => {
               <thead>
                 <tr className="bg-table-header text-foreground font-semibold">
                   <th className="px-3 py-3 text-center w-14">#</th>
-                  <th className="px-3 py-3 text-left">Material Description</th>
-                  <th className="px-3 py-3 text-center w-20">Qty</th>
+                  <th className="px-3 py-3 text-left">Material Description <span className="text-destructive">*</span></th>
+                  <th className="px-3 py-3 text-center w-20">Qty <span className="text-destructive">*</span></th>
                   <th className="px-3 py-3 text-center w-24">Unit</th>
-                  <th className="px-3 py-3 text-right w-28">Unit Price</th>
+                  <th className="px-3 py-3 text-right w-28">Unit Price <span className="text-destructive">*</span></th>
                   <th className="px-3 py-3 text-right w-32">Total SAR</th>
                   <th className="px-3 py-3 w-12 no-print"></th>
                 </tr>
@@ -168,7 +228,7 @@ const QuotationForm = () => {
                           updateItem(item.id, "description", e.target.value)
                         }
                         placeholder="Material description"
-                        className="h-8 border-none shadow-none focus-visible:ring-1 bg-transparent"
+                        className={`h-8 border-none shadow-none focus-visible:ring-1 bg-transparent ${errors[`item_${item.id}_description`] ? "ring-1 ring-destructive" : ""}`}
                       />
                     </td>
                     <td className="px-3 py-2">
@@ -179,7 +239,7 @@ const QuotationForm = () => {
                         onChange={(e) =>
                           updateItem(item.id, "qty", Number(e.target.value))
                         }
-                        className="h-8 text-center border-none shadow-none focus-visible:ring-1 bg-transparent"
+                        className={`h-8 text-center border-none shadow-none focus-visible:ring-1 bg-transparent ${errors[`item_${item.id}_qty`] ? "ring-1 ring-destructive" : ""}`}
                       />
                     </td>
                     <td className="px-3 py-2">
@@ -215,7 +275,7 @@ const QuotationForm = () => {
                             Number(e.target.value),
                           )
                         }
-                        className="h-8 text-right border-none shadow-none focus-visible:ring-1 bg-transparent"
+                        className={`h-8 text-right border-none shadow-none focus-visible:ring-1 bg-transparent ${errors[`item_${item.id}_unitPrice`] ? "ring-1 ring-destructive" : ""}`}
                       />
                     </td>
                     <td className="px-3 py-2 text-right font-medium">
@@ -260,10 +320,10 @@ const QuotationForm = () => {
           {/* Terms & Conditions */}
           <TermsSection />
 
-          {/* Print */}
+          {/* Submit / Print */}
           <div className="flex justify-end">
-            <Button onClick={() => window.print()} className="gap-2">
-              <FileDown className="h-4 w-4" /> Print / Export PDF
+            <Button onClick={handleSubmit} className="gap-2">
+              <FileDown className="h-4 w-4" /> Submit & Export PDF
             </Button>
           </div>
         </div>
@@ -278,24 +338,31 @@ const InfoField = ({
   onChange,
   placeholder,
   type = "text",
+  required,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
+  required?: boolean;
+  error?: string;
 }) => (
   <div className="flex items-center gap-3">
     <span className="w-16 text-sm font-semibold text-foreground shrink-0">
       {label}
+      {required && <span className="text-destructive ml-0.5">*</span>}
     </span>
-    <Input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="h-9"
-    />
+    <div className="flex-1">
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`h-9 ${error ? "border-destructive ring-1 ring-destructive" : ""}`}
+      />
+    </div>
   </div>
 );
 
