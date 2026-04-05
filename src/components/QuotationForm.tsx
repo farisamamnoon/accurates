@@ -3,6 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, FileDown } from "lucide-react";
 
+interface TermItem {
+  id: number;
+  text: string;
+}
+
 interface LineItem {
   id: number;
   description: string;
