@@ -28,7 +28,10 @@ interface TermItem {
 const VAT_RATE = 0.15;
 
 const fmt = (n: number) =>
-  n.toLocaleString("en-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  n.toLocaleString("en-SA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 const loadImageAsBase64 = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -50,70 +53,67 @@ const loadImageAsBase64 = (url: string): Promise<string> => {
 export const generatePDF = async (
   header: HeaderInfo,
   items: LineItem[],
-  terms: TermItem[]
+  terms: TermItem[],
 ) => {
   const doc = new jsPDF("p", "mm", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
   const contentWidth = pageWidth - margin * 2;
 
-  // Colors
+  // Colors based on the reference image
+  const black: [number, number, number] = [0, 0, 0];
   const primaryColor: [number, number, number] = [30, 80, 130]; // dark blue
-  const headerBg: [number, number, number] = [30, 80, 130];
-  const lightGray: [number, number, number] = [245, 245, 245];
-  const totalBg: [number, number, number] = [255, 248, 220];
+  const darkGray: [number, number, number] = [80, 80, 80];
+  const lightGray: [number, number, number] = [170, 170, 170];
+  const tableBorder: [number, number, number] = [200, 200, 200];
+  const totalBg: [number, number, number] = [255, 248, 220]; // Keep the totalBg as is
 
-  // --- Header bar with logo ---
-  doc.setFillColor(...headerBg);
-  doc.rect(0, 0, pageWidth, 32, "F");
-
-  try {
-    const logoBase64 = await loadImageAsBase64(logoUrl);
-    doc.addImage(logoBase64, "PNG", margin, 4, 24, 24);
-  } catch {
-    // skip logo if it fails to load
-  }
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+  // --- Header ---
+  let y = margin;
+  doc.setTextColor(...black);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text(header.companyName.toUpperCase(), margin + 28, 14);
+  doc.text(header.companyName.toUpperCase(), margin, y);
 
+  // Address and Contact Information (stacked vertically like image)
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("QUOTATION", margin + 28, 22);
+  y += 7;
 
-  // --- Info fields ---
-  let y = 40;
-  doc.setTextColor(0, 0, 0);
+  // Horizontal line separating header
+  y += 8;
+  doc.setDrawColor(...lightGray);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
+
+  // --- Client Info & Quotation Details (Two columns) ---
+  const initialY = y;
+  doc.setTextColor(...black);
   doc.setFontSize(10);
 
-  const infoLeft = [
-    ["Date", header.date],
-    ["To", header.to],
-    ["Attn", header.attn],
-  ];
-  const infoRight = [
-    ["QTN", header.qtn],
-    ["Tel", header.tel],
-    ["Email", header.email],
-  ];
+  // Left Column - Client Info
+  doc.setFont("helvetica", "bold");
+  doc.text(`To: ${header.to}`, margin, y);
+  doc.setFont("helvetica", "normal");
+  y += 5;
+  doc.text(`Attn: ${header.attn}`, margin, y);
+  y += 5;
+  doc.text(header.tel, margin, y);
+  y += 5;
+  doc.text(header.email, margin, y);
 
-  infoLeft.forEach(([label, value], i) => {
-    doc.setFont("helvetica", "bold");
-    doc.text(`${label}:`, margin, y + i * 7);
-    doc.setFont("helvetica", "normal");
-    doc.text(value || "—", margin + 20, y + i * 7);
-  });
+  // Right Column - Quotation Details (Matching key-value pair style)
+  doc.setFont("helvetica", "bold");
+  doc.text("Quotation No.", pageWidth - margin - 60, initialY);
+  doc.text("Date:", pageWidth - margin - 60, initialY + 5);
 
-  infoRight.forEach(([label, value], i) => {
-    doc.setFont("helvetica", "bold");
-    doc.text(`${label}:`, pageWidth / 2 + 10, y + i * 7);
-    doc.setFont("helvetica", "normal");
-    doc.text(value || "—", pageWidth / 2 + 30, y + i * 7);
-  });
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...darkGray);
+  doc.text(header.qtn, pageWidth - margin - 35, initialY);
+  doc.text(header.date, pageWidth - margin - 35, initialY + 5);
 
-  y += 28;
+  y = initialY + 25; // Move down for the table
 
   // --- Items table ---
   const tableBody = items.map((item, idx) => [
@@ -127,7 +127,9 @@ export const generatePDF = async (
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Material Description", "Qty", "Unit", "Unit Price", "Total SAR"]],
+    head: [
+      ["#", "Material Description", "Qty", "Unit", "Unit Price", "Total SAR"],
+    ],
     body: tableBody,
     margin: { left: margin, right: margin },
     headStyles: {
@@ -149,54 +151,84 @@ export const generatePDF = async (
   });
 
   // @ts-ignore - autoTable adds finalY
-  y = doc.lastAutoTable.finalY + 2;
+  y = doc.lastAutoTable.finalY + 7;
 
-  // --- Totals ---
-  const subtotal = items.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
-  const vat = subtotal * VAT_RATE;
+  // --- Totals Section (Three row structure) ---
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.qty * item.unitPrice,
+    0,
+  );
+  // Calculate VAT (assuming 15%)
+  const vat = subtotal * 0.15;
   const grandTotal = subtotal + vat;
 
   const totalsX = pageWidth - margin - 70;
   const valX = pageWidth - margin;
 
-  const drawTotalRow = (label: string, value: string, isBold: boolean, bg?: [number, number, number]) => {
+  const drawTotalRow = (
+    label: string,
+    value: string,
+    isBold: boolean,
+    textColor: [number, number, number] = [0, 0, 0],
+    bg?: [number, number, number],
+  ) => {
+    doc.setFont("helvetica", isBold ? "bold" : "normal");
+    doc.setFontSize(isBold ? 11 : 10);
+    doc.setTextColor(...textColor);
+
     if (bg) {
       doc.setFillColor(...bg);
-      doc.rect(totalsX - 5, y - 4, 75, 7, "F");
+      doc.rect(totalsX - 2, y - 4.5, valX - totalsX + 4, 8, "F");
     }
-    doc.setFont("helvetica", isBold ? "bold" : "normal");
-    doc.setFontSize(isBold ? 11 : 9);
-    doc.setTextColor(0, 0, 0);
+
     doc.text(label, totalsX, y);
     doc.text(value, valX, y, { align: "right" });
-    y += 7;
+    y += 8;
   };
 
-  drawTotalRow("TOTAL SAR", fmt(subtotal), false);
-  drawTotalRow("VAT 15%", fmt(vat), false);
-  drawTotalRow("GRAND TOTAL SAR", fmt(grandTotal), true, totalBg);
+  drawTotalRow("SUBTOTAL:", fmt(subtotal), false, black);
+  drawTotalRow("TAX:", fmt(vat), false, black);
+  drawTotalRow("TOTAL:", fmt(grandTotal), true, black, totalBg); // Yellowish highlight
 
-  // --- Terms & Conditions ---
-  y += 8;
-  if (terms.length > 0 && terms.some((t) => t.text.trim())) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...primaryColor);
-    doc.text("Terms & Conditions", margin, y);
-    y += 6;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const footerMargin = 20; // Distance from the very bottom of the paper
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    terms.forEach((term, idx) => {
-      if (term.text.trim()) {
-        doc.text(`${idx + 1}. ${term.text}`, margin, y);
-        y += 5;
-      }
-    });
-  }
+  // 1. Calculate how much space the terms actually need
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  const termsText = terms
+    .filter((t) => t.text.trim())
+    .map((t, idx) => `${idx + 1}. ${t.text}`);
 
-  // Save
+  // splitTextToSize handles long lines that might wrap
+  const wrappedTerms = doc.splitTextToSize(termsText.join("\n"), contentWidth);
+  const lineCount = wrappedTerms.length;
+  const termsBlockHeight = lineCount * 5 + 10; // 5mm per line + 10mm for title
+
+  // 2. Set Y to the bottom of the page minus the height of our terms
+  let termsY = pageHeight - footerMargin - termsBlockHeight;
+
+  // 3. Draw the Section
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Terms and Conditions:", margin, termsY);
+
+  termsY += 7;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(80, 80, 80);
+
+  terms.forEach((term, idx) => {
+    if (term.text.trim()) {
+      const line = `${idx + 1}. ${term.text}`;
+      const splitLine = doc.splitTextToSize(line, contentWidth);
+      doc.text(splitLine, margin, termsY);
+      termsY += splitLine.length * 5; // Increment Y based on wrapped lines
+    }
+  });
+
+  // --- Output ---
   const filename = header.qtn ? `Quotation-${header.qtn}.pdf` : "Quotation.pdf";
   doc.save(filename);
 };
