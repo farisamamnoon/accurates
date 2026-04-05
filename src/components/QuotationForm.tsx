@@ -3,6 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, FileDown } from "lucide-react";
 
+interface TermItem {
+  id: number;
+  text: string;
+}
+
 interface LineItem {
   id: number;
   description: string;
@@ -185,6 +190,9 @@ const QuotationForm = () => {
             </div>
           </div>
 
+          {/* Terms & Conditions */}
+          <TermsSection />
+
           {/* Print */}
           <div className="flex justify-end">
             <Button onClick={() => window.print()} className="gap-2">
@@ -228,5 +236,56 @@ const TotalRow = ({ label, value, bold }: { label: string; value: string; bold?:
     <span className={`w-32 text-right text-sm ${bold ? "font-bold text-lg" : "font-semibold"}`}>{value}</span>
   </div>
 );
+
+const TermsSection = () => {
+  const [terms, setTerms] = useState<TermItem[]>([
+    { id: 1, text: "PAYMENT: 100% ADVANCE" },
+    { id: 2, text: "VALIDITY: 5 DAYS" },
+  ]);
+
+  const addTerm = () =>
+    setTerms((prev) => [...prev, { id: Date.now(), text: "" }]);
+
+  const updateTerm = (id: number, text: string) =>
+    setTerms((prev) => prev.map((t) => (t.id === id ? { ...t, text } : t)));
+
+  const removeTerm = (id: number) => {
+    if (terms.length === 1) return;
+    setTerms((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="bg-table-header px-4 py-2">
+        <h3 className="text-sm font-semibold text-foreground">Terms & Conditions</h3>
+      </div>
+      <div className="p-4 space-y-2">
+        {terms.map((term, idx) => (
+          <div key={term.id} className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground w-6 shrink-0">{idx + 1}.</span>
+            <Input
+              value={term.text}
+              onChange={(e) => updateTerm(term.id, e.target.value)}
+              placeholder="Enter term..."
+              className="h-8 flex-1"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+              onClick={() => removeTerm(term.id)}
+              disabled={terms.length === 1}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button variant="ghost" size="sm" onClick={addTerm} className="text-primary gap-1 mt-1">
+          <Plus className="h-4 w-4" /> Add Term
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export default QuotationForm;
