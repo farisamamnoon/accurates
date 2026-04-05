@@ -133,11 +133,12 @@ const QuotationForm = () => {
                         className="h-8 text-center border-none shadow-none focus-visible:ring-1 bg-transparent"
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 text-center">
+                      <span className="hidden print:inline text-sm">{item.unit}</span>
                       <select
                         value={item.unit}
                         onChange={(e) => updateItem(item.id, "unit", e.target.value)}
-                        className="h-8 w-full rounded-md bg-transparent text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        className="h-8 w-full rounded-md bg-transparent text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring print:hidden"
                       >
                         <option>Pcs</option>
                         <option>Roll</option>
