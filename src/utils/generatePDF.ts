@@ -94,32 +94,36 @@ export const generatePDF = async (
   y += 10;
 
   // --- Client Info & Quotation Details (Two columns) ---
-  const initialY = y;
-  doc.setTextColor(...black);
+  // --- Info fields ---
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
 
-  // Left Column - Client Info
-  doc.setFont("helvetica", "bold");
-  doc.text(`To: ${header.to}`, margin, y);
-  doc.setFont("helvetica", "normal");
-  y += 5;
-  doc.text(`Attn: ${header.attn}`, margin, y);
-  y += 5;
-  doc.text(header.tel, margin, y);
-  y += 5;
-  doc.text(header.email, margin, y);
+  const infoLeft = [
+    ["Date", header.date],
+    ["To", header.to],
+    ["Attn", header.attn],
+  ];
+  const infoRight = [
+    ["QTN", header.qtn],
+    ["Tel", header.tel],
+    ["Email", header.email],
+  ];
 
-  // Right Column - Quotation Details (Matching key-value pair style)
-  doc.setFont("helvetica", "bold");
-  doc.text("Quotation No.", pageWidth - margin - 60, initialY);
-  doc.text("Date:", pageWidth - margin - 60, initialY + 5);
+  infoLeft.forEach(([label, value], i) => {
+    doc.setFont("helvetica", "bold");
+    doc.text(`${label}:`, margin, y + i * 7);
+    doc.setFont("helvetica", "normal");
+    doc.text(value || "—", margin + 20, y + i * 7);
+  });
 
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...darkGray);
-  doc.text(header.qtn, pageWidth - margin - 35, initialY);
-  doc.text(header.date, pageWidth - margin - 35, initialY + 5);
+  infoRight.forEach(([label, value], i) => {
+    doc.setFont("helvetica", "bold");
+    doc.text(`${label}:`, pageWidth / 2 + 10, y + i * 7);
+    doc.setFont("helvetica", "normal");
+    doc.text(value || "—", pageWidth / 2 + 30, y + i * 7);
+  });
 
-  y = initialY + 25; // Move down for the table
+  y += 28;
 
   // --- Items table ---
   const tableBody = items.map((item, idx) => [
