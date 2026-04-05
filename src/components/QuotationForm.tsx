@@ -190,6 +190,9 @@ const QuotationForm = () => {
             </div>
           </div>
 
+          {/* Terms & Conditions */}
+          <TermsSection />
+
           {/* Print */}
           <div className="flex justify-end">
             <Button onClick={() => window.print()} className="gap-2">
