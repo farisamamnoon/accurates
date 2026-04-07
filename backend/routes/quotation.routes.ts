@@ -177,11 +177,11 @@ quotationRouter.get(
     const { id } = req.params;
 
     // 1. Fetch the quotation header
-    const quotation = db
+    const row = db
       .prepare("SELECT * FROM quotation WHERE id = ?")
       .get(id) as any;
 
-    if (!quotation) {
+    if (!row) {
       return res.status(404).json({
         success: false,
         message: "Quotation not found",
@@ -189,26 +189,38 @@ quotationRouter.get(
       });
     }
 
-    // 2. Fetch the associated items
-    const items = db
+    // 2. Fetch the associated items JOINED with products to get the name
+    const itemsRows = db
       .prepare(
-        "SELECT id, product_id, quantity, price, unit FROM quotation_items WHERE quotation_id = ?",
+        `
+        SELECT 
+          qi.id, 
+          qi.product_id, 
+          p.name as product_name, 
+          qi.quantity, 
+          qi.price, 
+          qi.unit 
+        FROM quotation_items qi
+        JOIN products p ON qi.product_id = p.id
+        WHERE qi.quotation_id = ?
+      `,
       )
       .all(id) as any[];
 
-    // 3. Format the response
+    // 3. Format the response with camelCase
     const data: Quotation = {
-      id: quotation.id,
-      date: quotation.date,
-      qtnNo: quotation.qtn_no,
-      customerName: quotation.customer_name,
-      attn: quotation.attn,
-      number: quotation.number,
-      email: quotation.email,
-      status: quotation.status,
-      items: items.map((item) => ({
+      id: row.id,
+      date: row.date,
+      qtnNo: row.qtn_no,
+      customerName: row.customer_name,
+      attn: row.attn,
+      number: row.number,
+      email: row.email,
+      status: row.status,
+      items: itemsRows.map((item) => ({
         id: item.id,
         productId: item.product_id,
+        productName: item.product_name, // Now available!
         quantity: item.quantity,
         price: item.price,
         unit: item.unit,

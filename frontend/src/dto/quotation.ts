@@ -3,6 +3,7 @@ import { ApiResponse } from "./common";
 export type QuotationItem = {
   id: number;
   productId: number;
+  productName: string;
   quantity: number;
   price: number | null;
   unit: string | null;

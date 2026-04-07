@@ -29,9 +29,9 @@ const QuotationView = () => {
   };
 
   const items =
-    quotation.items?.map((item: any) => ({
+    quotation.items?.map((item) => ({
       id: item.id,
-      description: `Product #${item.product_id}`, // 🔥 replace later with product name
+      description: item.productName,
       qty: item.quantity,
       unit: item.unit || "Pcs",
       unitPrice: item.price || 0,
