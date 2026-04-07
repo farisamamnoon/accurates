@@ -85,6 +85,7 @@ quotationRouter.get("/", (_, res: Response<QuotationsResponse>) => {
 
         qi.id as qi_id,
         qi.product_id,
+        p.name as product_name, 
         qi.quantity,
         qi.price,
         qi.unit
@@ -92,6 +93,7 @@ quotationRouter.get("/", (_, res: Response<QuotationsResponse>) => {
       FROM quotation q
       LEFT JOIN quotation_items qi 
         ON qi.quotation_id = q.id
+      JOIN products p ON qi.product_id = p.id
       ORDER BY q.id DESC
     `,
     )
@@ -118,6 +120,7 @@ quotationRouter.get("/", (_, res: Response<QuotationsResponse>) => {
       map.get(row.q_id)!.items.push({
         id: row.qi_id,
         productId: row.product_id,
+        productName: row.product_name,
         quantity: row.quantity,
         price: row.price,
         unit: row.unit,
