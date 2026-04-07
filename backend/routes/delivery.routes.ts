@@ -59,7 +59,6 @@ deliveryRouter.post(
 );
 
 // Get All Deliveries
-// deliveryRouter.ts
 deliveryRouter.get("/", (_, res: Response<DeliveryListResponse>) => {
   const rows = db
     .prepare(

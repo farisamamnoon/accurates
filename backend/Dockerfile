@@ -5,7 +5,9 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN rm -rf node_modules && \
+  npm install && \
+  npm rebuild better-sqlite3
 
 COPY . .
 
