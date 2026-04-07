@@ -4,10 +4,11 @@ import { validateBody } from "../middleware/validate.js";
 import {
   CreateQuotationDto,
   GetParams,
-  QuotationResponse,
+  QuotationsResponse,
   RemainingItemResponse,
   CreateQuotationResponse,
   Quotation,
+  QuotationResponse,
 } from "../dto/quotation.dto.js";
 import { createRoute } from "../dto/common.dto.js";
 
@@ -68,7 +69,7 @@ quotationRouter.post(
 );
 
 // Get all quotations
-quotationRouter.get("/", (_, res: Response<QuotationResponse>) => {
+quotationRouter.get("/", (_, res: Response<QuotationsResponse>) => {
   const rows = db
     .prepare(
       `
@@ -103,8 +104,8 @@ quotationRouter.get("/", (_, res: Response<QuotationResponse>) => {
       map.set(row.q_id, {
         id: row.q_id,
         date: row.date,
-        qtn_no: row.qtn_no,
-        customer_name: row.customer_name,
+        qtnNo: row.qtn_no,
+        customerName: row.customer_name,
         attn: row.attn,
         number: row.number,
         email: row.email,
@@ -116,7 +117,7 @@ quotationRouter.get("/", (_, res: Response<QuotationResponse>) => {
     if (row.qi_id) {
       map.get(row.q_id)!.items.push({
         id: row.qi_id,
-        product_id: row.product_id,
+        productId: row.product_id,
         quantity: row.quantity,
         price: row.price,
         unit: row.unit,
@@ -136,14 +137,15 @@ quotationRouter.get("/", (_, res: Response<QuotationResponse>) => {
 // Remaining quantity per quotation
 quotationRouter.get(
   "/:id/remaining",
-  (req: Request<GetParams>, res: Response<RemainingItemResponse[]>) => {
+  (req: Request<GetParams>, res: Response<RemainingItemResponse>) => {
     const { id } = req.params;
 
-    const remaining = db
+    const rows = db
       .prepare(
         `
-        SELECT qi.product_id,
-               qi.quantity - IFNULL(SUM(di.quantity), 0) as remaining
+        SELECT 
+          qi.product_id,
+          qi.quantity - IFNULL(SUM(di.quantity), 0) as remaining_qty
         FROM quotation_items qi
         LEFT JOIN delivery d ON d.quotation_id = qi.quotation_id
         LEFT JOIN delivery_items di 
@@ -152,9 +154,72 @@ quotationRouter.get(
         GROUP BY qi.product_id
       `,
       )
-      .all(id) as RemainingItemResponse[];
+      .all(id) as { product_id: number; remaining_qty: number }[];
 
-    res.json(remaining);
+    // Map database snake_case to frontend camelCase
+    const data = rows.map((row) => ({
+      productId: row.product_id,
+      remaining: row.remaining_qty,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: data,
+      message: "Remaining quantities calculated successfully",
+    });
+  },
+);
+
+// Get a single quotation by ID
+quotationRouter.get(
+  "/:id",
+  (req: Request<GetParams>, res: Response<QuotationResponse | null>) => {
+    const { id } = req.params;
+
+    // 1. Fetch the quotation header
+    const quotation = db
+      .prepare("SELECT * FROM quotation WHERE id = ?")
+      .get(id) as any;
+
+    if (!quotation) {
+      return res.status(404).json({
+        success: false,
+        message: "Quotation not found",
+        data: null,
+      });
+    }
+
+    // 2. Fetch the associated items
+    const items = db
+      .prepare(
+        "SELECT id, product_id, quantity, price, unit FROM quotation_items WHERE quotation_id = ?",
+      )
+      .all(id) as any[];
+
+    // 3. Format the response
+    const data: Quotation = {
+      id: quotation.id,
+      date: quotation.date,
+      qtnNo: quotation.qtn_no,
+      customerName: quotation.customer_name,
+      attn: quotation.attn,
+      number: quotation.number,
+      email: quotation.email,
+      status: quotation.status,
+      items: items.map((item) => ({
+        id: item.id,
+        productId: item.product_id,
+        quantity: item.quantity,
+        price: item.price,
+        unit: item.unit,
+      })),
+    };
+
+    res.status(200).json({
+      success: true,
+      data,
+      message: "Quotation retrieved successfully",
+    });
   },
 );
 

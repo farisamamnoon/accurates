@@ -25,8 +25,6 @@ interface TermItem {
   text: string;
 }
 
-const VAT_RATE = 0.15;
-
 const fmt = (n: number) =>
   n.toLocaleString("en-SA", {
     minimumFractionDigits: 2,
@@ -63,9 +61,7 @@ export const generatePDF = async (
   // Colors based on the reference image
   const black: [number, number, number] = [0, 0, 0];
   const primaryColor: [number, number, number] = [30, 80, 130]; // dark blue
-  const darkGray: [number, number, number] = [80, 80, 80];
   const lightGray: [number, number, number] = [170, 170, 170];
-  const tableBorder: [number, number, number] = [200, 200, 200];
   const totalBg: [number, number, number] = [255, 248, 220]; // Keep the totalBg as is
   let y = margin;
 

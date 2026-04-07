@@ -62,14 +62,14 @@ export type GetParams = {
   id: string; // comes as string from URL
 };
 
-export type RemainingItemResponse = {
+export type RemainingItemResponse = ApiResponse<{
   productId: number;
   remaining: number;
-};
+}[]>;
 
 export type QuotationItem = {
   id: number;
-  product_id: number;
+  productId: number;
   quantity: number;
   price: number | null;
   unit: string | null;
@@ -78,8 +78,8 @@ export type QuotationItem = {
 export type Quotation = {
   id: number;
   date: string;
-  qtn_no: string;
-  customer_name: string;
+  qtnNo: string;
+  customerName: string;
   attn: string | null;
   number: string | null;
   email: string | null;
@@ -87,6 +87,8 @@ export type Quotation = {
   items: QuotationItem[];
 };
 
-export type QuotationResponse = ApiResponse<Quotation[]>;
+export type QuotationsResponse = ApiResponse<Quotation[]>;
 
 export type CreateQuotationResponse = ApiResponse<{ id: string }>;
+
+export type QuotationResponse = ApiResponse<Quotation | null>;
