@@ -92,19 +92,32 @@ export default function QuotationIndex() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1 max-w-[300px]">
-                        {q.items?.slice(0, 2).map((item, idx) => (
+                      <div className="flex flex-wrap gap-1.5 max-w-[350px]">
+                        {q.items?.slice(0, 3).map((item, idx) => (
                           <Badge
                             key={idx}
-                            variant="outline"
-                            className="text-[10px] font-normal"
+                            variant="secondary"
+                            className="text-[11px] font-medium px-2 py-0.5 bg-muted/50 text-foreground border-none"
                           >
-                            Qty: {item.quantity} (ID: {item.productId})
+                            <span className="text-primary font-bold mr-1">
+                              {item.quantity}
+                            </span>
+                            <span className="truncate max-w-[120px]">
+                              {item.productName}
+                            </span>
                           </Badge>
                         ))}
-                        {q.items && q.items.length > 2 && (
-                          <span className="text-[10px] text-muted-foreground">
-                            +{q.items.length - 2} more
+                        {q.items && q.items.length > 3 && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-muted-foreground border-dashed"
+                          >
+                            +{q.items.length - 3} others
+                          </Badge>
+                        )}
+                        {(!q.items || q.items.length === 0) && (
+                          <span className="text-xs text-muted-foreground italic">
+                            No items added
                           </span>
                         )}
                       </div>
