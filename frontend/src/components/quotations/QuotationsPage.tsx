@@ -100,10 +100,10 @@ export default function QuotationIndex() {
                             className="text-[11px] font-medium px-2 py-0.5 bg-muted/50 text-foreground border-none"
                           >
                             <span className="text-primary font-bold mr-1">
-                              {item.quantity}
+                              {item.productName}
                             </span>
                             <span className="truncate max-w-[120px]">
-                              {item.productName}
+                              ({item.quantity})
                             </span>
                           </Badge>
                         ))}
